@@ -237,35 +237,49 @@ int main(){
 		lastTree = newTree;
 	}
 
-	// Beispiel erster Knoten:
+	// jedem Knoten seine Kanten zuordnen
+	NPtr ptr_throughNodes;
 	EPtr newEdge, lastEdge;
 	ptr_edgeList tempEdgeList = allEdges;
-	EPtr edgeList0 = (EPtr) malloc(sizeof(edge));
+
+	ptr_throughNodes = ptr_tree;
+
+	ptr_throughNodes->edges = (EPtr) malloc(sizeof(edge));
+	ptr_throughNodes->edges->next = NULL;
+	lastEdge = ptr_throughNodes->edges;
+
+	/*EPtr edgeList0 = (EPtr) malloc(sizeof(edge));
 	edgeList0->next = NULL;
-	lastEdge = edgeList0;
+	lastEdge = edgeList0;*/
+	for (int j = 0; j < n+2; j++){
+		for (int i = 0; i < n+1; i++){				// durchläuft alle Kanten des Baumes und prüft, ob Knoten j Start einer Kante ist
+			printf("j: %d i: %d\n", j, i);
+			if (tempEdgeList->start == j){			// Prüfen auf 0; später j in for-schleife
+				printf("found sth.: end: %d\n", tempEdgeList->end);
+				lastEdge->id = findEntry(ptr_tree, tempEdgeList->end);
 
-	for (int i = 0; i < n+1; i++){
-		if (tempEdgeList->start == 0){			// Prüfen auf 0
-			lastEdge->id = findEntry(ptr_tree, tempEdgeList->end);
-
-			newEdge = (EPtr) malloc(sizeof(edge));
-			newEdge->next = NULL;
-			lastEdge->next = newEdge;
-			lastEdge = newEdge;
+				newEdge = (EPtr) malloc(sizeof(edge));
+				newEdge->next = NULL;
+				lastEdge->next = newEdge;
+				lastEdge = newEdge;
+			}
+			tempEdgeList = tempEdgeList->next;
 		}
-		tempEdgeList = tempEdgeList->next;
+		ptr_throughNodes = ptr_throughNodes->next;		// rücksetzten der bieden Zeiger
+		tempEdgeList = allEdges;
 	}
-	ptr_tree->edges = edgeList0;
-	printf("test: %d\n", ptr_tree->edges->id->value);
+	
+	//ptr_tree->edges = edgeList0;
+	//printf("test: %d\n", ptr_tree->edges->id->value);
 
 
 
 	/* Bei Nutzereingabe:
 	free(codeList);
 	codeList = NULL;*/
-	free(edgeList0);
+	//free(edgeList0);
 	free(ptr_tree);
 	ptr_tree = NULL;
-	edgeList0 = NULL;
+	//edgeList0 = NULL;
 	return 0;
 }

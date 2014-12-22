@@ -175,6 +175,14 @@ ptr_edgeList makeEdgeList(int code[], int help[]){
 	return ptr_head;
 }
 
+NPtr findEntry(NPtr ptr_head, int val){
+	if (ptr_head == NULL) return NULL;
+	while (ptr_head->value != val){
+		ptr_head = ptr_head->next;
+	}
+	return ptr_head;
+}
+
 // MAIN ////////////////////////////////
 int main(){
 	// Code per Zufall
@@ -238,9 +246,7 @@ int main(){
 
 	for (int i = 0; i < n+1; i++){
 		if (tempEdgeList->start == 0){			// Prüfen auf 0
-			printf("found one: %d\n", tempEdgeList->end);
-			lastEdge->id = (ptr_tree + tempEdgeList->end);
-			printf("num: %d\n", (ptr_tree + tempEdgeList->end)->value);
+			lastEdge->id = findEntry(ptr_tree, tempEdgeList->end);
 
 			newEdge = (EPtr) malloc(sizeof(edge));
 			newEdge->next = NULL;
@@ -249,10 +255,8 @@ int main(){
 		}
 		tempEdgeList = tempEdgeList->next;
 	}
-	//printf("test: %d\n", edgeList0->id->value);
 	ptr_tree->edges = edgeList0;
-
-
+	printf("test: %d\n", ptr_tree->edges->id->value);
 
 
 

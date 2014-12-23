@@ -26,6 +26,7 @@ typedef struct edge *EPtr;
 
 typedef struct node{						// representiert alle Elemente des Baumes
 	int value;								
+	int count; 								// Anzahl der Vorgänger
 	EPtr edges;								// Liste mit allen Kanten zu Nachfolgern (siehe [struct edge])
 	NPtr next;								// nächstes Element im Baum
 } node;
@@ -53,44 +54,6 @@ void outEdges(EPtr ptr_head){
 
 	if (ptr_head != NULL)
 		outEdges(ptr_head->next);
-}
-
-// Eingabe des Prüfer-Codes durch User ... eig unwichtig
-ptrList codeInput(){
-	int i = 0;								// zählt, wie viele Elemente in der Liste sind				
-	char input = 1;
-	ptrList newNumber, lastNumber;
-	ptrList ptr_head = (ptrList) malloc(sizeof(listElement));
-	ptr_head->next = NULL;
-	lastNumber = ptr_head;
-
-
-	do {
-		printf("nächste Zahl des Prüfercodes oder [e]nde: ");
-		scanf(" %c", &input);										// " %c" (mit Leerzeichen) ignoriert das letzte Enter aus dem Puffer 
-																	// -> Zeilen nicht überspringen
-		if ( ((int)input < 48 || (int)input > 57) && ((int)input != 101) ){		// Input zwischen (0 und 9)?
-			printf("unmögliche Eingabe: %d\n", input);
-			continue;
-		}
-
-		// Liste erstellen
-		if (input != 101){
-			if (i == 0){
-				ptr_head->value = input-48;
-				i++;
-			}
-			else{
-				newNumber = (ptrList) malloc(sizeof(listElement));
-				newNumber->next = NULL;
-				newNumber->value = input-48;
-				lastNumber->next = newNumber;
-				lastNumber = newNumber;
-				i++;
-			}
-		}
-	}while (input != 101 && i < 10);
-	return ptr_head;
 }
 
 int findLow(int code[], int start, int restrictedList[]){
@@ -223,15 +186,16 @@ int main(){
 
 	// Baum/Graphen erstellen
 	NPtr newTree, lastTree;
-	NPtr ptr_tree = (NPtr) malloc(sizeof(node));
-	ptr_tree->next = NULL;
-	ptr_tree->edges = NULL;
-	lastTree = ptr_tree;
+	NPtr ptr_graph = (NPtr) malloc(sizeof(node));
+	ptr_graph->next = NULL;
+	ptr_graph->edges = NULL;
+	lastTree = ptr_graph;
 
-	for (int i = 0; i < n+2; i++){												// Liste aller Knoten mit den Werten des Alphabetes
+	for (int i = 1; i < n+2; i++){												// Liste aller Knoten mit den Werten des Alphabetes
 		newTree = (NPtr) malloc(sizeof(node));									// [0]->[1]->[2]-> ...
 		newTree->edges = NULL;
 		newTree->value = i;
+		newTree->count = 0;
 		newTree->next = NULL;
 		lastTree->next = newTree;
 		lastTree = newTree;
@@ -242,21 +206,19 @@ int main(){
 	EPtr newEdge, lastEdge;
 	ptr_edgeList tempEdgeList = allEdges;
 
-	ptr_throughNodes = ptr_tree;
+	ptr_throughNodes = ptr_graph;
 
 	ptr_throughNodes->edges = (EPtr) malloc(sizeof(edge));
 	ptr_throughNodes->edges->next = NULL;
 	lastEdge = ptr_throughNodes->edges;
 
-	/*EPtr edgeList0 = (EPtr) malloc(sizeof(edge));
-	edgeList0->next = NULL;
-	lastEdge = edgeList0;*/
 	for (int j = 0; j < n+2; j++){
 		for (int i = 0; i < n+1; i++){				// durchläuft alle Kanten des Baumes und prüft, ob Knoten j Start einer Kante ist
-			printf("j: %d i: %d\n", j, i);
-			if (tempEdgeList->start == j){			// Prüfen auf 0; später j in for-schleife
-				printf("found sth.: end: %d\n", tempEdgeList->end);
-				lastEdge->id = findEntry(ptr_tree, tempEdgeList->end);
+			//printf("j: %d i: %d\n", j, i);
+			if (tempEdgeList->start == j){
+				NPtr tmpEndNode = findEntry(ptr_graph, tempEdgeList->end);		
+				lastEdge->id = tmpEndNode;
+				tmpEndNode->count++;
 
 				newEdge = (EPtr) malloc(sizeof(edge));
 				newEdge->next = NULL;
@@ -268,18 +230,19 @@ int main(){
 		ptr_throughNodes = ptr_throughNodes->next;		// rücksetzten der bieden Zeiger
 		tempEdgeList = allEdges;
 	}
+
+	//TEST
+	NPtr tmp = ptr_graph;
+	while (tmp != NULL){
+		if (tmp->count == 0)
+			printf("hier haben wir die Wurzel: ");
+		printf("Knoten: %d hat %d Vorgänger\n",tmp->value, tmp->count);
+		tmp = tmp->next;
+	}
+
+
+	free(ptr_graph);
+	ptr_graph = NULL;
 	
-	//ptr_tree->edges = edgeList0;
-	//printf("test: %d\n", ptr_tree->edges->id->value);
-
-
-
-	/* Bei Nutzereingabe:
-	free(codeList);
-	codeList = NULL;*/
-	//free(edgeList0);
-	free(ptr_tree);
-	ptr_tree = NULL;
-	//edgeList0 = NULL;
 	return 0;
 }

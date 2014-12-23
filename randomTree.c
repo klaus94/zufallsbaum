@@ -231,13 +231,16 @@ int main(){
 		tempEdgeList = allEdges;
 	}
 
-	//TEST
-	NPtr tmp = ptr_graph;
-	while (tmp != NULL){
-		if (tmp->count == 0)
-			printf("hier haben wir die Wurzel: ");
-		printf("Knoten: %d hat %d Vorgänger\n",tmp->value, tmp->count);
-		tmp = tmp->next;
+	//Wurzel finden --> ptr_tree zeigt auf Wurzel:
+	NPtr ptrTmp = ptr_graph;
+	NPtr ptr_tree;										// Pointer, der auf die Wurzel des Baumes zeigt
+	while (ptrTmp != NULL){
+		if (ptrTmp->count == 0){
+			//printf("hier haben wir die Wurzel: ");
+			ptr_tree = ptrTmp;							// Baum-Zeiger umbiegen
+		}
+		//printf("Knoten: %d hat %d Vorgänger\n",ptrTmp->value, ptrTmp->count);
+		ptrTmp = ptrTmp->next;
 	}
 
 

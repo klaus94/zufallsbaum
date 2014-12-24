@@ -36,16 +36,6 @@ typedef struct edge{						// representiert alle FolgeKanten eines Knotens
 	EPtr next;								// mit nächster Kante
 } edge;
 
-
-void out(ptrList ptr_head){
-	if (ptr_head == NULL) return;
-
-	printf("%d, ", ptr_head->value);
-
-	if (ptr_head != NULL)
-		out(ptr_head->next);
-}
-
 void outEdges(EPtr ptr_head){
 	if (ptr_head == NULL) return;
 
@@ -79,7 +69,6 @@ int findLow(int code[], int start, int restrictedList[]){
 	return -1;
 }
 
-// hilfsArray erstellen:
 void makeHelpArray(int code[], int* helpArray){
 	int i = 0;
 	int n = sizeof(code);
@@ -146,9 +135,35 @@ NPtr findEntry(NPtr ptr_head, int val){
 	return ptr_head;
 }
 
+// Ausgabe des Baumes
+void out(NPtr ptr_tree, int stufe){
+	if (ptr_tree == NULL) return;
+	printf("Stufe: %d: %d\n", stufe, ptr_tree->value);
+	EPtr tmpOutEdges = ptr_tree->edges;
+	while (tmpOutEdges->id != NULL){
+		out(tmpOutEdges->id, stufe + 1);
+		tmpOutEdges = tmpOutEdges->next;
+	}
+
+	//printf("Wurzel: %d\n", ptr_tree->value);
+}
+
+void newEdge(NPtr* startNode, NPtr* endNode){
+	EPtr newEdge = (EPtr) malloc(sizeof(edge));
+	newEdge->next = NULL;
+	newEdge->id = (*endNode);
+
+	EPtr lastEdgeOfStartNode = (*startNode)->edges;
+	while (lastEdgeOfStartNode != NULL){
+		lastEdgeOfStartNode = lastEdgeOfStartNode->next;
+	}
+
+	lastEdgeOfStartNode = newEdge;
+}
+
 // MAIN ////////////////////////////////
 int main(){
-	// Code per Zufall
+	// Code per Zufall erstellen
 	time_t t;
 	time(&t);
 	srand((unsigned int)t);
@@ -162,16 +177,6 @@ int main(){
 	int helpArray[n];
 	makeHelpArray(codeArray, helpArray);										// help = [y,y,y,y,y,y,y,y]
 
-		// Ausgabe des Prüfercodes und des Hilfsarrays:
-	/*printf("Prüfercode:\n");
-	for (int i = 0; i < n; i++){
-		printf("%d ", codeArray[i]);
-	}
-	printf("\nHilfsArray: \n");
-	for (int i = 0; i < n; i++){
-		printf("%d ", helpArray[i]);
-	}
-	printf("\n");*/
 
 	// Liste mit allen Kanten erstellen:
 	ptr_edgeList allEdges = makeEdgeList(codeArray, helpArray);					// allEdges = {{x,y}, {x,y}, ...}
@@ -184,7 +189,7 @@ int main(){
 		tmpOutEdges = tmpOutEdges->next;
 	}
 
-	// Baum/Graphen erstellen
+	// Graphen erstellen
 	NPtr newTree, lastTree;
 	NPtr ptr_graph = (NPtr) malloc(sizeof(node));
 	ptr_graph->next = NULL;
@@ -193,7 +198,7 @@ int main(){
 
 	for (int i = 1; i < n+2; i++){												// Liste aller Knoten mit den Werten des Alphabetes
 		newTree = (NPtr) malloc(sizeof(node));									// [0]->[1]->[2]-> ...
-		newTree->edges = NULL;
+		newTree->edges = (EPtr) malloc(sizeof(edge));
 		newTree->value = i;
 		newTree->count = 0;
 		newTree->next = NULL;
@@ -203,7 +208,7 @@ int main(){
 
 	// jedem Knoten seine Kanten zuordnen
 	NPtr ptr_throughNodes;
-	EPtr newEdge, lastEdge;
+	EPtr lastEdge; //newEdge, 
 	ptr_edgeList tempEdgeList = allEdges;
 
 	ptr_throughNodes = ptr_graph;
@@ -212,36 +217,36 @@ int main(){
 	ptr_throughNodes->edges->next = NULL;
 	lastEdge = ptr_throughNodes->edges;
 
-	for (int j = 0; j < n+2; j++){
-		for (int i = 0; i < n+1; i++){				// durchläuft alle Kanten des Baumes und prüft, ob Knoten j Start einer Kante ist
-			//printf("j: %d i: %d\n", j, i);
-			if (tempEdgeList->start == j){
-				NPtr tmpEndNode = findEntry(ptr_graph, tempEdgeList->end);		
-				lastEdge->id = tmpEndNode;
-				tmpEndNode->count++;
 
-				newEdge = (EPtr) malloc(sizeof(edge));
-				newEdge->next = NULL;
-				lastEdge->next = newEdge;
-				lastEdge = newEdge;
-			}
-			tempEdgeList = tempEdgeList->next;
-		}
-		ptr_throughNodes = ptr_throughNodes->next;		// rücksetzten der bieden Zeiger
-		tempEdgeList = allEdges;
+	EPtr tempEdge;
+	for (int i = 0; i < n+1; i++){
+		NPtr startNode = findEntry(ptr_graph, tempEdgeList->start);				// Start und End-Knoten bestimmen
+		NPtr endNode = findEntry(ptr_graph, tempEdgeList->end);
+		tempEdge = (EPtr) malloc(sizeof(edge));
+		tempEdge->id = endNode;
+		tempEdge->next = startNode->edges;
+		startNode->edges = tempEdge;
+		endNode->count = endNode->count + 1;
+
+		tempEdgeList = tempEdgeList->next;
 	}
+
 
 	//Wurzel finden --> ptr_tree zeigt auf Wurzel:
 	NPtr ptrTmp = ptr_graph;
 	NPtr ptr_tree;										// Pointer, der auf die Wurzel des Baumes zeigt
 	while (ptrTmp != NULL){
 		if (ptrTmp->count == 0){
-			//printf("hier haben wir die Wurzel: ");
 			ptr_tree = ptrTmp;							// Baum-Zeiger umbiegen
+			break;
 		}
-		//printf("Knoten: %d hat %d Vorgänger\n",ptrTmp->value, ptrTmp->count);
 		ptrTmp = ptrTmp->next;
 	}
+
+
+	// Testen, ob ein richtiger Baum entstanden ist
+	printf("out:\n");
+	out(ptr_tree, 0);
 
 
 	free(ptr_graph);
